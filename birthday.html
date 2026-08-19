@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>生日快乐，宇宙第一有趣灵魂</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0e1a;
+            overflow: hidden;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+            padding: 20px;
+            pointer-events: none;
+        }
+
+        .title {
+            color: #e8e6f0;
+            font-size: clamp(2rem, 6vw, 4rem);
+            font-weight: 300;
+            letter-spacing: 0.2em;
+            opacity: 0;
+            animation: fadeIn 2s ease forwards;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+
+        .subtitle {
+            color: #b9b5cc;
+            font-size: clamp(1rem, 2.5vw, 1.4rem);
+            font-weight: 300;
+            margin-top: 18px;
+            opacity: 0;
+            animation: fadeIn 2s ease 0.8s forwards;
+            letter-spacing: 0.05em;
+            line-height: 1.9;
+            max-width: 600px;
+        }
+
+        .btn {
+            pointer-events: auto;
+            margin-top: 45px;
+            padding: 14px 36px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            color: #e8e6f0;
+            border-radius: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            letter-spacing: 0.15em;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeIn 2s ease 1.6s forwards;
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+
+        .wish-card {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            z-index: 10;
+            background: rgba(18, 22, 35, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px 32px;
+            text-align: center;
+            color: #e8e6f0;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            max-width: 90vw;
+            width: 380px;
+        }
+
+        .wish-card.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .wish-card .wish-icon {
+            font-size: 2.8rem;
+            margin-bottom: 16px;
+            animation: twinkleStar 2s ease-in-out infinite;
+        }
+
+        .wish-card .wish-text {
+            font-size: 1.3rem;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+            line-height: 1.8;
+        }
+
+        .wish-card .wish-sub {
+            margin-top: 14px;
+            font-size: 0.9rem;
+            color: #b9b5cc;
+            letter-spacing: 0.05em;
+        }
+
+        .close-btn {
+            margin-top: 28px;
+            padding: 10px 28px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            color: #e8e6f0;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes twinkleStar {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; }
+        }
+
+        /* 音乐启动遮罩层 */
+        .start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            background: rgba(10, 14, 26, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: opacity 1s ease, visibility 1s ease;
+        }
+
+        .start-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .start-overlay .start-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            animation: twinkleStar 2s ease-in-out infinite;
+        }
+
+        .start-overlay .start-text {
+            color: #e8e6f0;
+            font-size: 1.2rem;
+            letter-spacing: 0.2em;
+            font-weight: 300;
+        }
+
+        .start-overlay .start-sub {
+            color: #b9b5cc;
+            font-size: 0.85rem;
+            margin-top: 12px;
+            letter-spacing: 0.1em;
+        }
+    </style>
+</head>
+<body>
+    <!-- 音乐播放器 -->
+    <audio id="bgm" loop></audio>
+
+    <!-- 点击开启遮罩 -->
+    <div class="start-overlay" id="startOverlay">
+        <div class="start-icon">🎧</div>
+        <p class="start-text">点击开启今天</p>
+        <p class="start-sub">音乐和星空一起等你</p>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="container">
+        <h1 class="title" id="title">生日快乐，宇宙第一有趣灵魂</h1>
+        <p class="subtitle" id="subtitle">
+            生日愿望是：暴富、拥有迪丽热巴的美貌、全世界有趣的人都来找我玩。<br>
+            如果实现不了，那就天天开心◑.◑
+        </p>
+        <button class="btn" id="wishBtn">点我，许个愿</button>
+    </div>
+
+    <div class="wish-card" id="wishCard">
+        <div class="wish-icon">🌠</div>
+        <p class="wish-text">愿望已加入购物车</p>
+        <p class="wish-sub">等待宇宙发货，预计新一岁内送达（不包邮）。</p>
+        <button class="close-btn" id="closeBtn">收下这份星光</button>
+    </div>
+
+    <script>
+        // ========== 自定义设置 ==========
+        // 已经帮你替换成网易云外链（歌曲ID：2059475863）
+        const musicUrl = 'https://music.163.com/song/media/outer/url?id=2059475863';
+        // ================================
+
+        const audio = document.getElementById('bgm');
+        if (musicUrl) {
+            audio.src = musicUrl;
+        }
+
+        // 启动遮罩点击：播放音乐并进入页面
+        const startOverlay = document.getElementById('startOverlay');
+        startOverlay.addEventListener('click', () => {
+            if (musicUrl) {
+                audio.play().catch(err => console.log('播放失败：', err));
+            }
+            startOverlay.classList.add('hidden');
+        });
+
+        // 许愿按钮：触发流星（如果音乐还没播，也尝试播放）
+        document.getElementById('wishBtn').addEventListener('click', () => {
+            if (musicUrl && audio.paused) {
+                audio.play().catch(() => {});
+            }
+            // ... 原有许愿逻辑
+        });
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        let meteors = [];
+        let particles = [];
+        let mouse = { x: null, y: null };
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // ---------- 星星 ----------
+        class Star {
+            constructor() {
+                this.reset();
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.radius = Math.random() * 1.5 + 0.5;
+                this.alpha = Math.random() * 0.8 + 0.2;
+                this.twinkleSpeed = Math.random() * 0.02 + 0.005;
+                this.phase = Math.random() * Math.PI * 2;
+                this.vx = (Math.random() - 0.5) * 0.02;
+                this.vy = (Math.random() - 0.5) * 0.02;
+            }
+            update() {
+                this.phase += this.twinkleSpeed;
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < -5) this.x = canvas.width + 5;
+                if (this.x > canvas.width + 5) this.x = -5;
+                if (this.y < -5) this.y = canvas.height + 5;
+                if (this.y > canvas.height + 5) this.y = -5;
+            }
+            draw() {
+                const twinkle = Math.sin(this.phase) * 0.35 + 0.65;
+                const alpha = Math.min(this.alpha * twinkle, 1);
+                let offsetX = 0, offsetY = 0;
+                if (mouse.x !== null && mouse.y !== null) {
+                    offsetX = (mouse.x - canvas.width / 2) * 0.008 * this.radius;
+                    offsetY = (mouse.y - canvas.height / 2) * 0.008 * this.radius;
+                }
+                ctx.beginPath();
+                ctx.arc(this.x + offsetX, this.y + offsetY, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                ctx.fill();
+            }
+        }
+
+        // ---------- 流星 ----------
+        class Meteor {
+            constructor(targetX, targetY) {
+                this.startX = canvas.width * 0.15;
+                this.startY = -30;
+                this.targetX = targetX || canvas.width / 2;
+                this.targetY = targetY || canvas.height / 2;
+                this.x = this.startX;
+                this.y = this.startY;
+                const dx = this.targetX - this.startX;
+                const dy = this.targetY - this.startY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const speed = Math.max(distance / 70, 9);
+                this.vx = dx / distance * speed;
+                this.vy = dy / distance * speed;
+                this.trail = [];
+                this.alive = true;
+                this.radius = 2.2;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > 18) this.trail.shift();
+
+                const dx = this.targetX - this.x;
+                const dy = this.targetY - this.y;
+                if (Math.sqrt(dx * dx + dy * dy) < 12) {
+                    this.alive = false;
+                    createParticles(this.targetX, this.targetY, 70);
+                    showWishCard();
+                }
+            }
+            draw() {
+                for (let i = 0; i < this.trail.length; i++) {
+                    const alpha = i / this.trail.length;
+                    const r = this.radius * alpha;
+                    ctx.beginPath();
+                    ctx.arc(this.trail[i].x, this.trail[i].y, r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 240, 200, ${alpha * 0.75})`;
+                    ctx.fill();
+                }
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.fill();
+            }
+        }
+
+        // ---------- 粒子 ----------
+        function createParticles(x, y, count = 40) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 4 + 1.5;
+                const hue = Math.random() * 50 + 30;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    radius: Math.random() * 2.2 + 0.8,
+                    alpha: 1,
+                    decay: Math.random() * 0.018 + 0.008,
+                    color: `hsl(${hue}, 80%, 70%)`
+                });
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.015;
+                p.alpha -= p.decay;
+                p.radius *= 0.985;
+                if (p.alpha <= 0 || p.radius < 0.1) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawParticles() {
+            for (const p of particles) {
+                ctx.save();
+                ctx.globalAlpha = Math.max(p.alpha, 0);
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // ---------- UI 交互 ----------
+        function showWishCard() {
+            document.getElementById('wishCard').classList.add('show');
+        }
+
+        // 许愿按钮：触发流星
+        document.getElementById('wishBtn').addEventListener('click', () => {
+            if (meteors.length > 0) return;
+            const targetX = canvas.width * 0.5;
+            const targetY = canvas.height * 0.42;
+            meteors.push(new Meteor(targetX, targetY));
+            document.getElementById('wishBtn').style.pointerEvents = 'none';
+            document.getElementById('wishBtn').style.opacity = '0';
+        });
+
+        document.getElementById('closeBtn').addEventListener('click', () => {
+            document.getElementById('wishCard').classList.remove('show');
+        });
+
+        // 点击星空任意处也可以生成小星星（趣味）
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            createParticles(x, y, 18);
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.touches[0].clientX - rect.left;
+                const y = e.touches[0].clientY - rect.top;
+                createParticles(x, y, 12);
+            }
+        }, { passive: true });
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                mouse.x = e.touches[0].clientX;
+                mouse.y = e.touches[0].clientY;
+            }
+        }, { passive: true });
+
+        // ---------- 初始化星空 ----------
+        const starCount = window.innerWidth < 768 ? 120 : 220;
+        for (let i = 0; i < starCount; i++) {
+            stars.push(new Star());
+        }
+
+        // ---------- 动画循环 ----------
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (const star of stars) {
+                star.update();
+                star.draw();
+            }
+
+            for (let i = meteors.length - 1; i >= 0; i--) {
+                const m = meteors[i];
+                m.update();
+                m.draw();
+                if (!m.alive) {
+                    meteors.splice(i, 1);
+                }
+            }
+
+            updateParticles();
+            drawParticles();
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
